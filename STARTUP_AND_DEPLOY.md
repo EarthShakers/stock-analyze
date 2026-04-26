@@ -1,60 +1,22 @@
-# TradingAgents 启动与部署说明
+# TradingAgents Docker 部署说明
 
-本文档适用于当前项目的新版架构：
+项目现在只保留一种部署方式：`Docker + docker compose`。
 
-- 后端：`FastAPI`
-- 前端：`Next.js`
-- 数据存储：`src/dump/session_*.json`
-- 部署模式：本地开发 / 单端口静态部署 / Railway / 阿里云服务器
+## 1. 你需要准备什么
 
-## 1. 目录说明
+- Docker
+- Docker Compose
+- 根目录 `.env`
+- 根目录 `mcp_config.json`
 
-当前关键目录如下：
-
-```text
-api/                 FastAPI API 层
-frontend/            Next.js 前端
-src/                 原有核心工作流、智能体、MCP、导出逻辑
-src/dump/            分析会话 JSON 数据
-markdown_reports/    Markdown 导出结果
-```
-
-## 2. 环境要求
-
-- Python 3.11+，建议直接使用项目内 `.venv`
-- Node.js 20+
-- npm 10+
-
-如果你是第一次拉起项目，建议优先确认：
+如果还没有配置文件，可以先复制示例：
 
 ```bash
-python --version
-node -v
-npm -v
+cp .env.example .env
+cp mcp_config.json.example mcp_config.json
 ```
 
-## 3. 后端启动
-
-### 3.1 安装 Python 依赖
-
-如果项目虚拟环境还没准备好：
-
-```bash
-python -m venv .venv
-source .venv/bin/activate
-python -m pip install -r requirements.txt
-```
-
-如果已经存在 `.venv`，建议直接使用它：
-
-```bash
-source .venv/bin/activate
-python -m pip install -r requirements.txt
-```
-
-### 3.2 配置环境变量
-
-确认根目录存在 `.env` 文件，至少应配置：
+至少确认 `.env` 里这些值已经填好：
 
 ```env
 LLM_API_KEY=your_api_key
@@ -69,312 +31,113 @@ DEBUG_MODE=true
 VERBOSE_LOGGING=true
 ```
 
-### 3.3 配置 MCP
-
-编辑根目录的 `mcp_config.json`：
-
-```json
-{
-  "servers": {
-    "your-server": {
-      "url": "http://localhost:3000/sse",
-      "transport": "sse",
-      "timeout": 600
-    }
-  }
-}
-```
-
-如果暂时不接 MCP，也可以保留空配置，系统会以降级模式运行。
-
-### 3.4 启动 FastAPI
+## 2. 启动
 
 在项目根目录执行：
 
 ```bash
-source .venv/bin/activate
-uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload
+docker compose up --build
 ```
 
-启动后可访问：
+启动后访问：
 
+- 前端首页：`http://127.0.0.1:8000`
 - API 文档：`http://127.0.0.1:8000/docs`
 - 系统状态：`http://127.0.0.1:8000/api/system/info`
 
-## 4. 前端启动
+## 3. 后台运行
 
-### 4.1 安装前端依赖
-
-```bash
-cd frontend
-npm install
-```
-
-### 4.2 本地开发模式启动
-
-建议先在 [frontend/.env.local.example](/Users/zhuochaoli/code/ai/stock-analyze/frontend/.env.local.example) 基础上创建 `frontend/.env.local`：
+如果你想后台启动：
 
 ```bash
-cd frontend
-cp .env.local.example .env.local
+docker compose up --build -d
 ```
 
-如果你的后端不是跑在 `127.0.0.1:8000`，请把 `NEXT_PUBLIC_API_BASE_URL` 改成实际地址。
+查看日志：
 
 ```bash
-cd frontend
-npm run dev
+docker compose logs -f
 ```
 
-默认访问：
-
-- 前端页面：`http://127.0.0.1:3000`
-
-注意：
-
-- 开发模式下，前端通过浏览器请求 `/api/*`
-- 实际后端地址由 `NEXT_PUBLIC_API_BASE_URL` 决定
-- 当前实现主要面向“前后端分端口开发 + 生产静态托管”模式
-
-## 5. 本地联调启动顺序
-
-推荐使用两个终端。
-
-### 终端一：启动后端
+停止服务：
 
 ```bash
-cd /Users/zhuochaoli/code/ai/stock-analyze
-source .venv/bin/activate
-uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload
+docker compose down
 ```
 
-### 终端二：启动前端
+## 4. 数据持久化
+
+`docker-compose.yml` 已经把这些目录挂载出来了，容器重启后数据不会丢：
+
+- `src/dump/`
+- `markdown_reports/`
+- `src/dumptools/pdf_reports/`
+- `src/dumptools/docx_reports/`
+
+同时也挂载了：
+
+- `.env` 通过 `env_file` 注入
+- `mcp_config.json` 作为只读配置文件挂载进容器
+
+## 5. 常用命令
+
+重新构建并启动：
 
 ```bash
-cd /Users/zhuochaoli/code/ai/stock-analyze/frontend
-npm run dev
+docker compose up --build
 ```
 
-联调访问地址：
-
-- 前端：`http://127.0.0.1:3000`
-- 后端：`http://127.0.0.1:8000`
-
-## 6. 生产构建
-
-### 6.1 构建前端静态文件
+只重启服务：
 
 ```bash
-cd frontend
-npm run build
+docker compose restart
 ```
 
-构建完成后会生成：
-
-```text
-frontend/out/
-```
-
-### 6.2 单端口部署
-
-当前 `api/main.py` 已支持在 `frontend/out` 存在时直接托管前端静态页面，因此可以只启一个 `uvicorn`：
+删除容器但保留本地数据：
 
 ```bash
-cd /Users/zhuochaoli/code/ai/stock-analyze
-source .venv/bin/activate
-uvicorn api.main:app --host 0.0.0.0 --port 8000
+docker compose down
 ```
 
-此时访问：
-
-- `/` → 前端首页
-- `/history` → 历史页
-- `/settings` → 设置页
-- `/api/*` → 后端接口
-
-这是当前最推荐的部署方式。
-
-## 7. Railway 部署
-
-项目已新增：
-
-- `Procfile`
-- `railway.toml`
-
-### 7.1 Railway 构建逻辑
-
-`railway.toml` 当前配置为：
-
-- 安装 Python 依赖
-- 安装前端依赖
-- 执行 `npm run build`
-- 最终使用 `uvicorn api.main:app` 启动
-
-### 7.2 Railway 环境变量
-
-在 Railway 控制台中至少配置：
-
-- `LLM_API_KEY`
-- `LLM_BASE_URL`
-- `LLM_MODEL`
-- `LLM_TEMPERATURE`
-- `LLM_MAX_TOKENS`
-- `MAX_DEBATE_ROUNDS`
-- `MAX_RISK_DEBATE_ROUNDS`
-- `DEBUG_MODE`
-- `VERBOSE_LOGGING`
-
-如果使用 MCP，还需确保：
-
-- `mcp_config.json` 内容已正确提交或通过部署流程写入
-- Railway 网络可以访问相应 MCP 服务
-
-### 7.3 Railway 启动命令
-
-当前使用：
+删除容器并清理镜像：
 
 ```bash
-uvicorn api.main:app --host 0.0.0.0 --port $PORT
+docker compose down --rmi local
 ```
 
-健康检查路径：
-
-```text
-/api/system/info
-```
-
-## 8. 阿里云服务器部署
-
-以下以 Linux 服务器为例。
-
-### 8.1 拉代码并安装依赖
+进入容器：
 
 ```bash
-git clone <your-repo-url> /opt/stock-analyze
-cd /opt/stock-analyze
-python3 -m venv .venv
-source .venv/bin/activate
-python -m pip install -r requirements.txt
-cd frontend
-npm install
-npm run build
-cd ..
+docker compose exec app bash
 ```
 
-### 8.2 systemd 服务文件
+## 6. 目录说明
 
-创建 `/etc/systemd/system/tradingagents.service`：
+- `Dockerfile`
+  用来构建镜像。会先构建 `frontend/out`，再交给 FastAPI 单端口托管。
 
-```ini
-[Unit]
-Description=TradingAgents FastAPI
-After=network.target
+- `docker-compose.yml`
+  用来启动正式服务，并挂载配置和会话/导出目录。
 
-[Service]
-Type=simple
-WorkingDirectory=/opt/stock-analyze
-Environment="PATH=/opt/stock-analyze/.venv/bin"
-ExecStart=/opt/stock-analyze/.venv/bin/uvicorn api.main:app --host 0.0.0.0 --port 8000 --workers 2
-Restart=always
-RestartSec=5
+- `.dockerignore`
+  用来排除本地缓存、构建产物和不需要进镜像的文件。
 
-[Install]
-WantedBy=multi-user.target
-```
+## 7. 故障排查
 
-加载并启动：
+如果启动失败，优先检查：
+
+1. `.env` 是否存在且 LLM 配置完整
+2. `mcp_config.json` 是否是当前项目可识别的格式
+3. `8000` 端口是否被占用
+
+查看日志：
 
 ```bash
-sudo systemctl daemon-reload
-sudo systemctl enable tradingagents
-sudo systemctl start tradingagents
-sudo systemctl status tradingagents
+docker compose logs -f app
 ```
 
-### 8.3 Nginx 反向代理
-
-示例配置：
-
-```nginx
-server {
-    listen 80;
-    server_name your-domain.com;
-
-    location / {
-        proxy_pass http://127.0.0.1:8000;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-
-    location /api/analysis/progress/ {
-        proxy_pass http://127.0.0.1:8000;
-        proxy_set_header Connection '';
-        proxy_http_version 1.1;
-        chunked_transfer_encoding off;
-        proxy_buffering off;
-        proxy_cache off;
-        proxy_read_timeout 86400;
-    }
-}
-```
-
-如果启用 HTTPS，请再额外配置证书。
-
-## 9. 常见问题
-
-### 9.1 `ModuleNotFoundError: No module named 'fastapi'`
-
-说明当前 Python 环境没有安装后端依赖，请在项目虚拟环境里执行：
+如果你修改了前端或后端代码，需要重新构建：
 
 ```bash
-source .venv/bin/activate
-python -m pip install -r requirements.txt
+docker compose up --build
 ```
-
-### 9.2 前端页面能打开，但接口报错
-
-优先检查：
-
-- `uvicorn` 是否已启动
-- `.env` 是否存在且配置完整
-- `mcp_config.json` 是否格式正确
-- 浏览器请求的接口是否走到了正确地址
-
-### 9.3 `npm run build` 失败
-
-建议依次检查：
-
-- Node 版本是否为 20+
-- `frontend/node_modules` 是否完整
-- 是否在 `frontend/` 目录下执行构建
-
-可重新执行：
-
-```bash
-cd frontend
-npm install
-npm run build
-```
-
-### 9.4 SSE 进度流不更新
-
-优先检查：
-
-- 是否通过 `/api/analysis/start` 启动了会话
-- `src/dump/` 下是否生成了对应 `session_*.json`
-- 反向代理是否关闭了 SSE 缓冲
-
-## 10. 当前推荐使用方式
-
-开发环境推荐：
-
-1. 后端：`uvicorn api.main:app --reload --port 8000`
-2. 前端：`cd frontend && npm run dev`
-
-生产环境推荐：
-
-1. 先执行 `cd frontend && npm run build`
-2. 再只启动 `uvicorn api.main:app --port 8000`
-3. 由 FastAPI 统一托管前端静态页面和 API
