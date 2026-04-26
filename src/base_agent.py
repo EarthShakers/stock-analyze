@@ -170,10 +170,10 @@ class BaseAgent(ABC):
                     if hasattr(progress_tracker, 'start_agent'):
                         # 构建系统提示和上下文信息
                         system_prompt = self.get_system_prompt(state)
-                        # 全局输出格式规范：连续段落，不使用标题符号/项目符号/编号
+                        # 全局输出格式规范：统一要求 Markdown 结构化输出
                         system_prompt = (
                             system_prompt
-                            + "\n\n输出格式要求：请将本次输出写成一篇完整的说明文，使用连续段落表述，不要使用标题符号（如##）、项目符号或编号，保持逻辑清晰、语言连贯。若需输出代码/伪代码，可使用代码块，不受上述限制。"
+                            + "\n\n输出格式要求：请使用规范的 Markdown 输出。必须使用标题层级（如 ##、###）组织内容；在需要列举观点、结论、风险、建议时，优先使用无序列表或有序列表；如果有结构化信息可使用 Markdown 表格。不要输出“=== 报告开始 ===”这类纯文本分隔符。内容要结构清晰、层次分明，便于前端直接按 Markdown 渲染。若需输出代码/伪代码，可使用代码块。"
                         )
                         is_analyst = self.agent_name.endswith('_analyst')
                         if is_analyst:
@@ -203,10 +203,10 @@ class BaseAgent(ABC):
             # 构建系统提示和上下文（如果之前没有构建的话）
             if 'system_prompt' not in locals():
                 system_prompt = self.get_system_prompt(state)
-                # 全局输出格式规范：连续段落，不使用标题符号/项目符号/编号
+                # 全局输出格式规范：统一要求 Markdown 结构化输出
                 system_prompt = (
                     system_prompt
-                    + "\n\n输出格式要求：请将本次输出写成一篇完整的说明文，使用连续段落表述，不要使用标题符号（如##）、项目符号或编号，保持逻辑清晰、语言连贯。若需输出代码/伪代码，可使用代码块，不受上述限制。"
+                    + "\n\n输出格式要求：请使用规范的 Markdown 输出。必须使用标题层级（如 ##、###）组织内容；在需要列举观点、结论、风险、建议时，优先使用无序列表或有序列表；如果有结构化信息可使用 Markdown 表格。不要输出“=== 报告开始 ===”这类纯文本分隔符。内容要结构清晰、层次分明，便于前端直接按 Markdown 渲染。"
                 )
             if 'context_prompt' not in locals():
                 # 检查是否是分析师，如果是则使用专门的分析师上下文
@@ -504,13 +504,12 @@ class BaseAgent(ABC):
             user_query = state.user_query
         
         formatted_content = f"""
-=== {self.agent_name} 分析报告 ===
-时间: {datetime.now().strftime('%Y%m%d %H:%M:%S')}
-用户问题: {user_query}
-MCP工具: {'启用' if self.mcp_enabled else '禁用'}
+# {self.agent_name} 分析报告
+
+- 时间：{datetime.now().strftime('%Y%m%d %H:%M:%S')}
+- 用户问题：{user_query}
+- MCP工具：{'启用' if self.mcp_enabled else '禁用'}
 
 {content}
-
-=== 报告结束 ===
 """
         return formatted_content.strip()

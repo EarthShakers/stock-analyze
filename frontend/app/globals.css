@@ -336,6 +336,42 @@ textarea {
   margin-bottom: 0;
 }
 
+.markdown-body table {
+  width: 100%;
+  min-width: 560px;
+  border-collapse: collapse;
+  margin: 1em 0;
+  font-size: 14px;
+  background: rgba(255, 251, 245, 0.9);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.markdown-body thead {
+  background: rgba(31, 106, 82, 0.08);
+}
+
+.markdown-body th,
+.markdown-body td {
+  padding: 12px 14px;
+  text-align: left;
+  border-bottom: 1px solid rgba(95, 84, 68, 0.1);
+  vertical-align: top;
+  white-space: pre-wrap;
+}
+
+.markdown-body th {
+  font-weight: 700;
+}
+
+.markdown-body tr:last-child td {
+  border-bottom: none;
+}
+
 .markdown-body-compact {
   line-height: 1.45;
 }
@@ -382,6 +418,16 @@ textarea {
 
 .markdown-body-compact li {
   margin: 0.1em 0;
+}
+
+.markdown-body-compact table {
+  margin: 0.5em 0;
+  font-size: 13px;
+}
+
+.markdown-body-compact th,
+.markdown-body-compact td {
+  padding: 8px 10px;
 }
 
 .markdown-body pre {

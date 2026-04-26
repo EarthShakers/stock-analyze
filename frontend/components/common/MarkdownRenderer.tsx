@@ -1,5 +1,6 @@
 import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
+import remarkGfm from 'remark-gfm';
 
 export function MarkdownRenderer({ content, compact = false }: { content?: string; compact?: boolean }) {
   if (!content) {
@@ -8,7 +9,9 @@ export function MarkdownRenderer({ content, compact = false }: { content?: strin
 
   return (
     <div className={`markdown-body${compact ? ' markdown-body-compact' : ''}`}>
-      <ReactMarkdown rehypePlugins={[rehypeRaw]}>{content}</ReactMarkdown>
+      <ReactMarkdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw]}>
+        {content}
+      </ReactMarkdown>
     </div>
   );
 }
