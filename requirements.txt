@@ -29,6 +29,7 @@ asyncio-mqtt>=0.13.0
 
 # 导出工具依赖 (用于生成分析报告)
 # 核心导出依赖
+markdown>=3.6         # Python-Markdown，用于Web结果渲染
 markdown2>=2.4.0     # Markdown生成 (比markdown库更快更稳定)
 python-docx>=0.8.11  # DOCX文档生成
 reportlab>=4.0.0     # PDF生成 (备选方案)

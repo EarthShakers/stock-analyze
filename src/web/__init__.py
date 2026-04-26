@@ -11,7 +11,11 @@ __description__ = "TradingAgents-MCPmode Web前端"
 
 from .config_manager import ConfigManager
 from .analysis_monitor import AnalysisMonitor
-from .results_viewer import ResultsViewer
+try:
+    from .results_viewer import ResultsViewer
+except ImportError:
+    # Keep package importable even if optional viewer deps are missing.
+    ResultsViewer = None
 
 __all__ = [
     'ConfigManager',
