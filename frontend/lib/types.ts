@@ -39,6 +39,16 @@ export interface SessionData {
   };
 }
 
+export interface ChatFeedSession {
+  session_id: string;
+  status: SessionStatus;
+  user_query: string;
+  updated_at?: string;
+  agents: AgentRecord[];
+  mcp_calls: McpCall[];
+  final_results?: SessionData['final_results'];
+}
+
 export interface SessionSummary {
   session_id: string;
   created_at?: string;

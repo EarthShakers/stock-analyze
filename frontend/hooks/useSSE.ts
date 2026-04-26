@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 
+import { api } from '@/lib/api';
 import type { ProgressPayload } from '@/lib/types';
 
 export function useSSE(sessionId: string | null) {
@@ -10,7 +11,7 @@ export function useSSE(sessionId: string | null) {
   useEffect(() => {
     if (!sessionId) return;
 
-    const source = new EventSource(`/api/analysis/progress/${sessionId}`);
+    const source = new EventSource(api.progressUrl(sessionId));
     source.onmessage = (event) => {
       try {
         setProgress(JSON.parse(event.data) as ProgressPayload);

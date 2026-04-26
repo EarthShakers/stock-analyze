@@ -128,6 +128,14 @@ class ProgressTracker:
     def start_agent(self, agent_name: str, action: str = "", system_prompt: str = "", user_prompt: str = "", context: str = ""):
         """开始智能体工作"""
         self.current_agent = agent_name
+        for agent in self.session_data["agents"]:
+            if agent["agent_name"] == agent_name and agent["status"] == "running":
+                agent["action"] = action or agent.get("action", "")
+                agent["system_prompt"] = system_prompt or agent.get("system_prompt", "")
+                agent["user_prompt"] = user_prompt or agent.get("user_prompt", "")
+                agent["context"] = context or agent.get("context", "")
+                self._save_json()
+                return
         agent_data = {
             "agent_name": agent_name,
             "action": action,
@@ -143,7 +151,19 @@ class ProgressTracker:
         print(f"🤖 智能体开始工作: {agent_name}")
         if action:
             print(f"   执行: {action}")
-    
+
+    def update_agent_output(self, agent_name: str, partial_result: str):
+        """流式更新智能体输出内容"""
+        updated = False
+        for agent in reversed(self.session_data["agents"]):
+            if agent["agent_name"] == agent_name and agent["status"] == "running":
+                agent["result"] = partial_result
+                updated = True
+                break
+
+        if updated:
+            self._save_json()
+
     def complete_agent(self, agent_name: str, result: str = "", success: bool = True):
         """完成智能体工作"""
         # 更新对应的agent记录

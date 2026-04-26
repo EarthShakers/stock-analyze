@@ -112,6 +112,15 @@ npm install
 
 ### 4.2 本地开发模式启动
 
+建议先在 [frontend/.env.local.example](/Users/zhuochaoli/code/ai/stock-analyze/frontend/.env.local.example) 基础上创建 `frontend/.env.local`：
+
+```bash
+cd frontend
+cp .env.local.example .env.local
+```
+
+如果你的后端不是跑在 `127.0.0.1:8000`，请把 `NEXT_PUBLIC_API_BASE_URL` 改成实际地址。
+
 ```bash
 cd frontend
 npm run dev
@@ -124,7 +133,7 @@ npm run dev
 注意：
 
 - 开发模式下，前端通过浏览器请求 `/api/*`
-- 如果你直接从 `3000` 访问页面，需要确保后端 `8000` 已启动
+- 实际后端地址由 `NEXT_PUBLIC_API_BASE_URL` 决定
 - 当前实现主要面向“前后端分端口开发 + 生产静态托管”模式
 
 ## 5. 本地联调启动顺序

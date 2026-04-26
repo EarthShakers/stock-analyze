@@ -1,4 +1,5 @@
 import os
+import asyncio
 from abc import ABC, abstractmethod
 from typing import Dict, Any, List, Optional
 from datetime import datetime
@@ -232,6 +233,25 @@ class BaseAgent(ABC):
             except Exception as _:
                 pass
 
+            async def stream_plain_llm(full_prompt: str) -> str:
+                chunks: List[str] = []
+                async for chunk in self.llm.astream([HumanMessage(content=full_prompt)]):
+                    cancel_checker = getattr(progress_tracker, "cancel_checker", None)
+                    if callable(cancel_checker) and cancel_checker():
+                        raise asyncio.CancelledError("分析已被用户取消")
+                    text = getattr(chunk, "content", "")
+                    if isinstance(text, list):
+                        text = "".join(
+                            item.get("text", "") if isinstance(item, dict) else str(item)
+                            for item in text
+                        )
+                    if not text:
+                        continue
+                    chunks.append(text)
+                    if progress_tracker and hasattr(progress_tracker, 'update_agent_output'):
+                        progress_tracker.update_agent_output(self.agent_name, "".join(chunks))
+                return "".join(chunks)
+
             # 如果启用了MCP工具，使用智能体（参考test.py的简洁方式）
             if self.mcp_enabled and current_tools and self.mcp_manager.client:
                 print(f"⚡ [{self.agent_name}] 正在调用LLM（带MCP工具）...")
@@ -319,56 +339,33 @@ class BaseAgent(ABC):
                     print(f"⚠️ [{self.agent_name}] MCP工具调用失败，回退到无工具模式: {mcp_error}")
                     # 回退到无工具模式
                     full_prompt = f"""{system_level_prompt}\n\n用户请求: {user_message}"""
-                    response = await self.llm.ainvoke([HumanMessage(content=full_prompt)])
-                    result = response.content
+                    result = await stream_plain_llm(full_prompt)
             else:
                 # 如果没有启用MCP工具，直接调用LLM
                 print(f"⚡ [{self.agent_name}] 正在调用LLM（无工具）...")
                 full_prompt = f"""{system_level_prompt}\n\n用户请求: {user_message}"""
-                response = await self.llm.ainvoke([HumanMessage(content=full_prompt)])
-                result = response.content
+                result = await stream_plain_llm(full_prompt)
 
                 
-                # 检查最终响应中是否包含工具调用
-                if hasattr(response, 'tool_calls') and response.tool_calls:
-                    print(f"🔧 [{self.agent_name}] LLM响应包含 {len(response.tool_calls)} 个新的工具调用")
-                
-                # 记录工具使用
-                if isinstance(state, dict):
-                    if 'agent_executions' not in state:
-                        state['agent_executions'] = []
-                    state['agent_executions'].append({
-                        'agent_name': self.agent_name,
-                        'action': "LLM调用(带MCP工具)",
-                        'result': result,  # 保留完整结果
-                        'mcp_used': True
-                    })
-                else:
-                    state.add_agent_execution(
-                        agent_name=self.agent_name,
-                        action="LLM调用(带MCP工具)",
-                        result=result,  # 保留完整结果
-                        mcp_used=True
-                    )
-
-                
-                # 记录执行
-                if isinstance(state, dict):
-                    if 'agent_executions' not in state:
-                        state['agent_executions'] = []
-                    state['agent_executions'].append({
-                        'agent_name': self.agent_name,
-                        'action': "LLM调用(无工具)",
-                        'result': result,  # 保留完整结果
-                        'mcp_used': False
-                    })
-                else:
-                    state.add_agent_execution(
-                        agent_name=self.agent_name,
-                        action="LLM调用(无工具)",
-                        result=result,  # 保留完整结果
-                        mcp_used=False
-                    )
+            # 记录执行
+            execution_action = "LLM调用(带MCP工具)" if self.mcp_enabled and current_tools and self.mcp_manager.client else "LLM调用(无工具)"
+            execution_mcp_used = bool(self.mcp_enabled and current_tools and self.mcp_manager.client)
+            if isinstance(state, dict):
+                if 'agent_executions' not in state:
+                    state['agent_executions'] = []
+                state['agent_executions'].append({
+                    'agent_name': self.agent_name,
+                    'action': execution_action,
+                    'result': result,
+                    'mcp_used': execution_mcp_used
+                })
+            else:
+                state.add_agent_execution(
+                    agent_name=self.agent_name,
+                    action=execution_action,
+                    result=result,
+                    mcp_used=execution_mcp_used
+                )
             
             # 显示分析结果
             print(f"✅ [{self.agent_name}] 分析完成，结果长度: {len(result)} 字符")

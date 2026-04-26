@@ -13,6 +13,8 @@ export function AgentConfigDialog({
   onToggle,
   onSelectAll,
   onClear,
+  onSelectGroup,
+  onClearGroup,
   onInvestmentChange,
   onRiskChange,
 }: {
@@ -24,6 +26,8 @@ export function AgentConfigDialog({
   onToggle: (agent: string) => void;
   onSelectAll: () => void;
   onClear: () => void;
+  onSelectGroup: (agents: string[]) => void;
+  onClearGroup: (agents: string[]) => void;
   onInvestmentChange: (value: number) => void;
   onRiskChange: (value: number) => void;
 }) {
@@ -52,22 +56,41 @@ export function AgentConfigDialog({
         </div>
 
         <div style={{ display: 'grid', gap: 16 }}>
-          {AGENT_GROUPS.map((group) => (
-            <div key={group.key} className="panel-soft" style={{ padding: 18 }}>
-              <div style={{ fontWeight: 700, marginBottom: 12 }}>{group.label}</div>
-              <div className="grid-3">
-                {group.agents.map((agent) => {
-                  const checked = activeAgents.includes(agent);
-                  return (
-                    <label key={agent} style={{ display: 'flex', gap: 10, alignItems: 'center', color: checked ? 'white' : 'var(--text-secondary)' }}>
-                      <input type="checkbox" checked={checked} onChange={() => onToggle(agent)} />
-                      {AGENT_LABELS[agent] ?? agent}
-                    </label>
-                  );
-                })}
+          {AGENT_GROUPS.map((group) => {
+            const selectedCount = group.agents.filter((agent) => activeAgents.includes(agent)).length;
+
+            return (
+              <div key={group.key} className="panel-soft" style={{ padding: 18 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, marginBottom: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+                  <div>
+                    <div style={{ fontWeight: 700 }}>{group.label}</div>
+                    <div style={{ marginTop: 6, color: 'var(--text-muted)', fontSize: 13 }}>
+                      {selectedCount}/{group.agents.length} 已选
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', gap: 10 }}>
+                    <button className="ghost-button" type="button" onClick={() => onSelectGroup(group.agents)}>
+                      本组全选
+                    </button>
+                    <button className="ghost-button" type="button" onClick={() => onClearGroup(group.agents)}>
+                      本组清空
+                    </button>
+                  </div>
+                </div>
+                <div className="grid-3">
+                  {group.agents.map((agent) => {
+                    const checked = activeAgents.includes(agent);
+                    return (
+                      <label key={agent} style={{ display: 'flex', gap: 10, alignItems: 'center', color: checked ? 'white' : 'var(--text-secondary)' }}>
+                        <input type="checkbox" checked={checked} onChange={() => onToggle(agent)} />
+                        {AGENT_LABELS[agent] ?? agent}
+                      </label>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         <div style={{ marginTop: 20 }}>

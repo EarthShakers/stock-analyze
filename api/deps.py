@@ -94,6 +94,7 @@ class ApiWorkflowOrchestrator(WorkflowOrchestrator):
             self.active_agents = set(self.agents.keys())
 
         self.progress_manager = ProgressTracker(session_id=session_id)
+        self.progress_manager.cancel_checker = cancel_checker
         self.progress_manager.update_user_query(user_query)
         self.progress_manager.set_active_agents(sorted(self.active_agents))
         self.progress_manager.log_workflow_start({"user_query": user_query})

@@ -23,7 +23,7 @@ async def stream_progress(session_id: str):
             yield f"data: {json.dumps(payload, ensure_ascii=False)}\n\n"
             if payload["status"] in {"completed", "cancelled", "error"} and not runtime.is_running(session_id):
                 break
-            await asyncio.sleep(2)
+            await asyncio.sleep(0.5)
 
     return StreamingResponse(
         event_generator(),

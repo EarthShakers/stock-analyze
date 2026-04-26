@@ -29,10 +29,19 @@ export function TopNav() {
   }, []);
 
   return (
-    <header style={{ position: 'sticky', top: 0, zIndex: 20, backdropFilter: 'blur(14px)', background: 'rgba(10,14,23,0.72)', borderBottom: '1px solid rgba(30,41,59,0.8)' }}>
-      <div className="page-container" style={{ paddingTop: 14, paddingBottom: 14, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
+    <header
+      style={{
+        position: 'sticky',
+        top: 0,
+        zIndex: 20,
+        backdropFilter: 'blur(18px)',
+        background: 'rgba(247,242,233,0.76)',
+        borderBottom: '1px solid rgba(95,84,68,0.1)',
+      }}
+    >
+      <div className="page-container" style={{ paddingTop: 12, paddingBottom: 12, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
-          <Link href="/" style={{ fontWeight: 700, letterSpacing: '0.03em' }}>
+          <Link href="/" style={{ fontWeight: 700, letterSpacing: '0.04em', fontSize: 15 }}>
             TradingAgents
           </Link>
           <nav style={{ display: 'flex', gap: 8 }}>
@@ -45,8 +54,9 @@ export function TopNav() {
                   className="ghost-button"
                   style={{
                     padding: '9px 14px',
-                    background: active ? 'rgba(59,130,246,0.14)' : undefined,
-                    color: active ? 'white' : 'var(--text-secondary)',
+                    background: active ? 'rgba(31,106,82,0.1)' : 'rgba(255,250,242,0.48)',
+                    color: active ? 'var(--accent-deep)' : 'var(--text-secondary)',
+                    borderColor: active ? 'rgba(31,106,82,0.2)' : 'rgba(95,84,68,0.12)',
                   }}
                 >
                   {tab.label}

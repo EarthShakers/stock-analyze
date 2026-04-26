@@ -6,7 +6,7 @@ import { StatusBadge } from '../common/StatusBadge';
 
 export function AgentReport({ agent }: { agent?: AgentRecord }) {
   return (
-    <div className="panel" style={{ padding: 22 }}>
+    <div className="panel-soft" style={{ padding: 22 }}>
       {agent ? (
         <>
           <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center', marginBottom: 16 }}>

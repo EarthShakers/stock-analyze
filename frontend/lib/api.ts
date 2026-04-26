@@ -1,7 +1,11 @@
 import type { ProgressPayload, SessionData, SessionSummary, SystemInfo } from './types';
 
+function getApiBaseUrl() {
+  return process.env.NEXT_PUBLIC_API_BASE_URL || '';
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(path, {
+  const response = await fetch(`${getApiBaseUrl()}${path}`, {
     ...init,
     headers: {
       'Content-Type': 'application/json',
@@ -32,6 +36,12 @@ export const api = {
   }) => request<{ session_id: string; status: string }>('/api/analysis/start', { method: 'POST', body: JSON.stringify(payload) }),
   stopAnalysis: (sessionId: string) => request<{ status: string }>(`/api/analysis/stop/${sessionId}`, { method: 'POST' }),
   getSession: async (sessionId: string) => (await request<{ session: SessionData }>(`/api/sessions/${sessionId}`)).session,
+  getAgentSummary: async (sessionId: string, agentName: string) =>
+    (await request<{ session_id: string; agent_name: string; summary: string }>(
+      `/api/sessions/${sessionId}/agents/${agentName}/summary`,
+    )).summary,
+  getDecisionSummary: async (sessionId: string) =>
+    (await request<{ session_id: string; summary: string }>(`/api/sessions/${sessionId}/decision-summary`)).summary,
   getSessions: async (query = '') => {
     const suffix = query ? `?${query}` : '';
     return request<{ items: SessionSummary[]; total: number }>(`/api/sessions${suffix}`);
@@ -43,8 +53,9 @@ export const api = {
   updateMcpConfig: (data: Record<string, unknown>) => request('/api/config/mcp', { method: 'PUT', body: JSON.stringify({ data }) }),
   getAgentConfig: async () => (await request<{ data: Record<string, boolean> }>('/api/config/agents')).data,
   updateAgentConfig: (data: Record<string, boolean>) => request('/api/config/agents', { method: 'PUT', body: JSON.stringify({ data }) }),
-  progressUrl: (sessionId: string) => `/api/analysis/progress/${sessionId}`,
-  exportUrl: (sessionId: string, format: 'markdown' | 'pdf' | 'docx') => `/api/export/${sessionId}/${format}`,
+  progressUrl: (sessionId: string) => `${getApiBaseUrl()}/api/analysis/progress/${sessionId}`,
+  exportUrl: (sessionId: string, format: 'markdown' | 'pdf' | 'docx') =>
+    `${getApiBaseUrl()}/api/export/${sessionId}/${format}`,
 };
 
 export type { ProgressPayload };

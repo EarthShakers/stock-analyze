@@ -47,6 +47,17 @@ class SessionDetailResponse(BaseModel):
     session: Dict[str, Any]
 
 
+class AgentSummaryResponse(BaseModel):
+    session_id: str
+    agent_name: str
+    summary: str
+
+
+class DecisionSummaryResponse(BaseModel):
+    session_id: str
+    summary: str
+
+
 class ConfigPayload(BaseModel):
     data: Dict[str, Any]
 
@@ -58,4 +69,3 @@ class SystemInfoResponse(BaseModel):
     mcp_tools_info: Dict[str, Any]
     debug_mode: bool
     verbose_logging: bool
-

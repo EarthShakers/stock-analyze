@@ -532,6 +532,7 @@ class WorkflowOrchestrator:
         
         # 初始化进度跟踪器
         self.progress_manager = ProgressTracker()
+        self.progress_manager.cancel_checker = cancel_checker
         self.progress_manager.update_user_query(user_query)
         # 写入本轮启用的智能体列表到会话JSON
         try:

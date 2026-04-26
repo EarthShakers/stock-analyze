@@ -2,7 +2,7 @@ import { api } from '@/lib/api';
 
 export function ExportButtons({ sessionId }: { sessionId: string }) {
   return (
-    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+    <div className="export-grid">
       <a className="ghost-button" href={api.exportUrl(sessionId, 'markdown')}>
         下载 MD
       </a>
