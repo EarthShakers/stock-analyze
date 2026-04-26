@@ -151,6 +151,13 @@ graph TD
 
 ## 🚀 快速开始
 
+### 新版 UI 启动与部署文档
+
+项目已新增 `FastAPI + Next.js` 版本的前后端结构。  
+如果你要启动新版 Web UI 或部署到服务器，请优先阅读：
+
+- [STARTUP_AND_DEPLOY.md](STARTUP_AND_DEPLOY.md)
+
 ### 环境要求
 
 - Python 3.8+

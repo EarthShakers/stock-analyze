@@ -50,3 +50,30 @@ src/dumptools/docx_reports/~$ssion_20250807_145152.docx
 /工作任务跟踪表*
 *.csv
 
+# 本地私有配置
+mcp_config.json
+.env
+
+# Python 环境与缓存
+.venv/
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# 前端依赖与构建产物
+node_modules/
+.next/
+out/
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+
+# 本地系统文件
+.DS_Store
+
+# 分析会话与导出产物
+src/dump/session_*.json
+markdown_reports/*.md
+src/dumptools/pdf_reports/*.pdf
+src/dumptools/docx_reports/*.docx
